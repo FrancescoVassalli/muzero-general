@@ -13,9 +13,6 @@ import torch
 from abstract_game import AbstractGame
 
 
-# In[2]:
-
-
 #globals 
 
 g_nStocks = 1
@@ -23,9 +20,6 @@ g_nFeatures = 4
 g_maxMoves =10
 g_futureMoves =1
 g_discount = 0.978
-
-
-# In[9]:
 
 
 class MuZeroConfig:
@@ -72,7 +66,7 @@ class MuZeroConfig:
 
 
         ### Network
-        self.network = "fullyconnected"  # "resnet" / "fullyconnected"
+        self.network = "resnet"  # "resnet" / "fullyconnected"
         self.support_size = 10  # Value and reward are scaled (with almost sqrt) and encoded on a vector with a range of -support_size to support_size. Choose it so that support_size <= sqrt(max(abs(discounted reward)))
         
         # Residual Network
@@ -82,9 +76,9 @@ class MuZeroConfig:
         self.reduced_channels_reward = 2  # Number of channels in reward head
         self.reduced_channels_value = 2  # Number of channels in value head
         self.reduced_channels_policy = 2  # Number of channels in policy head
-        self.resnet_fc_reward_layers = []  # Define the hidden layers in the reward head of the dynamic network
-        self.resnet_fc_value_layers = []  # Define the hidden layers in the value head of the prediction network
-        self.resnet_fc_policy_layers = []  # Define the hidden layers in the policy head of the prediction network
+        self.resnet_fc_reward_layers = [g_nStocks+1,g_nStocks+1]  # Define the hidden layers in the reward head of the dynamic network
+        self.resnet_fc_value_layers = [g_nStocks+1,g_nStocks+1]  # Define the hidden layers in the value head of the prediction network
+        self.resnet_fc_policy_layers = [g_nStocks+1,g_nStocks+1]  # Define the hidden layers in the policy head of the prediction network
 
         # Fully Connected Network
         self.encoding_size = 5
@@ -257,7 +251,7 @@ class ATEnv:
         total = 0
         for i in range(len(self.ownership)):
             total += self.ownership[i]*(self.closes[i][self.time]-self.closes[i][self.time-1])/self.closes[i][self.time-1]
-        return total
+        return 10*total
             
     def reset(self):
         self.ownership = [0 for i in range(2*g_nStocks)]
