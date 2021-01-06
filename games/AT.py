@@ -41,7 +41,7 @@ class MuZeroConfig:
         #for each stock we can buy or sell we can also do nothing
         self.action_space = list(range(2*g_nStocks+1))  # Fixed list of all possible actions. You should only edit the length
         self.players = list(range(1))  # List of players. You should only edit the length
-        self.stacked_observations = 0  # Number of previous observations and previous actions to add to the current observation
+        self.stacked_observations = 10  # Number of previous observations and previous actions to add to the current observation
 
         # Evaluate
         self.muzero_player = 0  # Turn Muzero begins to play (0: MuZero plays first, 1: MuZero plays second)
@@ -71,22 +71,22 @@ class MuZeroConfig:
         
         # Residual Network
         self.downsample = False  # Downsample observations before representation network, False / "CNN" (lighter) / "resnet" (See paper appendix Network Architecture)
-        self.blocks = 1  # Number of blocks in the ResNet
-        self.channels = 2  # Number of channels in the ResNet
-        self.reduced_channels_reward = 2  # Number of channels in reward head
-        self.reduced_channels_value = 2  # Number of channels in value head
-        self.reduced_channels_policy = 2  # Number of channels in policy head
-        self.resnet_fc_reward_layers = [g_nStocks+1,g_nStocks+1]  # Define the hidden layers in the reward head of the dynamic network
-        self.resnet_fc_value_layers = [g_nStocks+1,g_nStocks+1]  # Define the hidden layers in the value head of the prediction network
-        self.resnet_fc_policy_layers = [g_nStocks+1,g_nStocks+1]  # Define the hidden layers in the policy head of the prediction network
+        self.blocks = 16  # Number of blocks in the ResNet
+        self.channels = 256  # Number of channels in the ResNet
+        self.reduced_channels_reward = 256  # Number of channels in reward head
+        self.reduced_channels_value = 256  # Number of channels in value head
+        self.reduced_channels_policy = 256  # Number of channels in policy head
+        self.resnet_fc_reward_layers = [256,256]  # Define the hidden layers in the reward head of the dynamic network
+        self.resnet_fc_value_layers = [256,256]  # Define the hidden layers in the value head of the prediction network
+        self.resnet_fc_policy_layers = [256,256]  # Define the hidden layers in the policy head of the prediction network
 
         # Fully Connected Network
-        self.encoding_size = 5
-        self.fc_representation_layers = [16]  # Define the hidden layers in the representation network
+        self.encoding_size = 10
+        self.fc_representation_layers = []  # Define the hidden layers in the representation network
         self.fc_dynamics_layers = [16]  # Define the hidden layers in the dynamics network
         self.fc_reward_layers = [16]  # Define the hidden layers in the reward network
-        self.fc_value_layers = [16]  # Define the hidden layers in the value network
-        self.fc_policy_layers = [16]  # Define the hidden layers in the policy network
+        self.fc_value_layers = []  # Define the hidden layers in the value network
+        self.fc_policy_layers = []  # Define the hidden layers in the policy network
 
 
 
@@ -96,7 +96,7 @@ class MuZeroConfig:
         self.training_steps = 50000  # Total number of training steps (ie weights update according to a batch)
         self.batch_size = 32  # Number of parts of games to train on at each training step
         self.checkpoint_interval = 10  # Number of training steps before using the model for self-playing
-        self.value_loss_weight = 1  # Scale the value loss to avoid overfitting of the value function, paper recommends 0.25 (See paper appendix Reanalyze)
+        self.value_loss_weight = 0.25  # Scale the value loss to avoid overfitting of the value function, paper recommends 0.25 (See paper appendix Reanalyze)
         self.train_on_gpu = True if torch.cuda.is_available() else False  # Train on GPU if available
 
         self.optimizer = "Adam"  # "Adam" or "SGD". Paper uses SGD
