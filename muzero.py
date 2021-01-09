@@ -45,9 +45,7 @@ class MuZero:
             self.Game = game_module.Game
             self.config = game_module.MuZeroConfig()
         except ModuleNotFoundError as err:
-            print(
-                f'{game_name} is not a supported game name, try "cartpole" or refer to the documentation for adding a new game.'
-            )
+            print(f'{game_name} is not a supported game name, try "cartpole" or refer to the documentation for adding a new game.')
             raise err
 
         # Overwrite the config
@@ -562,6 +560,8 @@ def hyperparameter_search(
 
 
 if __name__ == "__main__":
+#		print("Hello World")
+#		exit()
     if len(sys.argv) == 2:
         # Train directly with "python muzero.py cartpole"
         muzero = MuZero(sys.argv[1])
