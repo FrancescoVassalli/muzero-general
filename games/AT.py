@@ -12,6 +12,8 @@ import torch
 
 from abstract_game import AbstractGame
 
+from DataSet import DataSet
+
 
 #globals 
 
@@ -216,11 +218,12 @@ class Game(AbstractGame):
 
 class ATEnv:
     def __init__(self):
+        self.data = DataSet()
         #call AT to generate the list of closing prices for each stock
-        self.closes = None
+        self.closes = self.data.getPrices(True)
         #get the features as a list of one DF per stock make sure the order is the same
-        self.featues = None
-        self.max = len(self.df.index)
+        self.featues = [self.data.getFeatures(True)]
+        self.max = self.data.getSize(True)
         self.ownership = [0 for i in range(2*g_nStocks)]
         self.time =0
         
