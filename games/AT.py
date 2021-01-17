@@ -5,12 +5,14 @@
 
 
 import datetime
-import os
+import sys, os
+#sys.path.append(os.path.join(os.path.dirname(__file__),'../..'))
+
 
 import numpy
 import torch
 
-from abstract_game import AbstractGame
+from .abstract_game import AbstractGame
 
 from DataSet import DataSet
 
@@ -27,9 +29,6 @@ g_discount = 0.978
 class MuZeroConfig:
     def __init__(self):
         # More information is available here: https://github.com/werner-duvaud/muzero-general/wiki/Hyperparameter-Optimization
-
-        numRows = gridNumRows
-        numColumns = gridNumColumns
 
         self.seed = 0  # Seed for numpy, torch and the game
         self.max_num_gpus = None  # Fix the maximum number of GPUs to use. It's usually faster to use a single GPU (set it to 1) if it has enough memory. None will use every GPUs available
