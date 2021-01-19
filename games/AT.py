@@ -23,6 +23,7 @@ import DataSet
 
 g_nStocks = 1
 g_nFeatures = 4
+g_nPeriodsInDay = 14
 g_maxMoves =10
 g_futureMoves =1
 g_discount = 0.978
@@ -262,16 +263,13 @@ class ATEnv:
         return self.get_observation()
 
     def render(self):
-                #TODO
+        #TODO
         pass
 
     def get_observation(self):
         #vector of features for each stock plus how much we own
         observation = []
         for i in range(len(self.ownership)):
-            observation.append(self.extract_features(self.featues.iloc[[self.time]]))
+            observation.append(list(self.featues[i].iloc[[self.time]]))
         return observation.flatten()
-    
-    def extract_features(series):
-        return [series['open'],series['close'],series['volume'],series['high']-series['low']]
 
