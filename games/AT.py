@@ -5,7 +5,7 @@
 
 
 import datetime
-import sys, os
+import sys, os,inspect 
 #sys.path.append(os.path.join(os.path.dirname(__file__),'../..'))
 
 
@@ -13,8 +13,10 @@ import numpy
 import torch
 
 from .abstract_game import AbstractGame
-
-from DataSet import DataSet
+mydir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+parent = os.path.dirname(mydir)
+sys.path.insert(0,parent)
+import DataSet
 
 
 #globals 
@@ -217,7 +219,7 @@ class Game(AbstractGame):
 
 class ATEnv:
     def __init__(self):
-        self.data = DataSet()
+        self.data = DataSet.DataSet()
         #call AT to generate the list of closing prices for each stock
         self.closes = self.data.getPrices(True)
         #get the features as a list of one DF per stock make sure the order is the same
