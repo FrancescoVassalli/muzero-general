@@ -50,9 +50,9 @@ class MuZeroConfig:
 
         ### Self-Play
         self.num_workers = 1  # Number of simultaneous threads/workers self-playing to feed the replay buffer
-        self.selfplay_on_gpu = True
-        self.max_moves = 500  # Maximum number of moves if game is not finished before
-        self.num_simulations = 50  # Number of future moves self-simulated
+        self.selfplay_on_gpu = False
+        self.max_moves = 6  # Maximum number of moves if game is not finished before
+        self.num_simulations = 10  # Number of future moves self-simulated
         self.discount = 0.997  # Chronological discount of the reward
         self.temperature_threshold = None  # Number of moves before dropping the temperature given by visit_softmax_temperature_fn to 0 (ie selecting the best action). If None, visit_softmax_temperature_fn is used every time
 
@@ -199,12 +199,6 @@ class Game(AbstractGame):
         """
         return [[self.env.reset()]]
 
-        def close(self):
-        """
-        Properly close the game.
-        """
-        pass
-
     def render(self):
         """
         Display the game observation.
@@ -224,10 +218,9 @@ class Game(AbstractGame):
         """
         actions = dict()
         actions[0] = "Hold"
-        for i in range(g_nStocks)
+        for i in range(g_nStocks):
             actions[i+1] = "Buy "+str(i)
             actions[i+g_nStocks+1] = "Sell "+str(i)
-        }
         return f"{action_number}. {actions[action_number]}"
 
 
