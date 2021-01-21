@@ -159,9 +159,6 @@ class Game(AbstractGame):
     """
 
     def __init__(self, seed=None):
-
-      self.actionSpace = list(range(2*g_nStocks+1))
-        
       self.env = ATEnv()
 
     def step(self, action):
@@ -174,7 +171,7 @@ class Game(AbstractGame):
         Returns:
             The new observation, the reward and a boolean if the game has ended.
         """
-        observation, reward, done, _ = self.env.step(action)
+        observation, reward, done = self.env.step(action)
         return [[observation]], reward, done
 
     def legal_actions(self):
@@ -223,7 +220,6 @@ class Game(AbstractGame):
             actions[i+g_nStocks+1] = "Sell "+str(i)
         return f"{action_number}. {actions[action_number]}"
 
-
 # In[15]:
 
 
@@ -246,7 +242,6 @@ class ATEnv:
         return list(range(2*g_nStocks+1))
 
     def step(self, action):
-
         print("Taking step")
         if action ==0:
             pass
