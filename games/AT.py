@@ -70,7 +70,7 @@ class MuZeroConfig:
 
 
         ### Network
-        self.network = "resnet"  # "resnet" / "fullyconnected"
+        self.network = "fullyconnected"  # "resnet" / "fullyconnected"
         self.support_size = 10  # Value and reward are scaled (with almost sqrt) and encoded on a vector with a range of -support_size to support_size. Choose it so that support_size <= sqrt(max(abs(discounted reward)))
         
         # Residual Network
@@ -86,11 +86,11 @@ class MuZeroConfig:
 
         # Fully Connected Network
         self.encoding_size = 10
-        self.fc_representation_layers = []  # Define the hidden layers in the representation network
-        self.fc_dynamics_layers = [16]  # Define the hidden layers in the dynamics network
-        self.fc_reward_layers = [16]  # Define the hidden layers in the reward network
-        self.fc_value_layers = []  # Define the hidden layers in the value network
-        self.fc_policy_layers = []  # Define the hidden layers in the policy network
+        self.fc_representation_layers = [16,16]  # Define the hidden layers in the representation network
+        self.fc_dynamics_layers = [16,16]  # Define the hidden layers in the dynamics network
+        self.fc_reward_layers = [16,16]  # Define the hidden layers in the reward network
+        self.fc_value_layers = [16,16]  # Define the hidden layers in the value network
+        self.fc_policy_layers = [16,16]  # Define the hidden layers in the policy network
 
 
 
@@ -102,6 +102,10 @@ class MuZeroConfig:
         self.checkpoint_interval = 10  # Number of training steps before using the model for self-playing
         self.value_loss_weight = 0.25  # Scale the value loss to avoid overfitting of the value function, paper recommends 0.25 (See paper appendix Reanalyze)
         self.train_on_gpu = True if torch.cuda.is_available() else False  # Train on GPU if available
+        if self.train_on_gpu:
+            print("On GPU")
+        else:
+            print("No GPU found")
 
         self.optimizer = "Adam"  # "Adam" or "SGD". Paper uses SGD
         self.weight_decay = 1e-4  # L2 weights regularization
@@ -234,9 +238,7 @@ class ATEnv:
         
     def legal_actions(self):
         # Initialize to all moves and then prune.
-        legal_actions = list(range(2*g_nStocks+1))
- 
-        return legal_actions
+        return list(range(2*g_nStocks+1))
 
     def step(self, action):
 
