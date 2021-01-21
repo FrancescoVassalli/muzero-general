@@ -199,12 +199,6 @@ class Game(AbstractGame):
         """
         return [[self.env.reset()]]
 
-        def close(self):
-        """
-        Properly close the game.
-        """
-        pass
-
     def render(self):
         """
         Display the game observation.
@@ -224,10 +218,9 @@ class Game(AbstractGame):
         """
         actions = dict()
         actions[0] = "Hold"
-        for i in range(g_nStocks)
+        for i in range(g_nStocks):
             actions[i+1] = "Buy "+str(i)
             actions[i+g_nStocks+1] = "Sell "+str(i)
-        }
         return f"{action_number}. {actions[action_number]}"
 
 
