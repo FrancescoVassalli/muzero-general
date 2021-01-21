@@ -226,6 +226,8 @@ class ATEnv:
         #get the features as a list of one DF per stock make sure the order is the same
         self.featues = [self.data.getFeatures(True)]
         self.max = self.data.getSize(True)
+        end  = len(self.featues[0].index)
+        print("Feature len " +str(end))
         self.ownership = [0 for i in range(2*g_nStocks)]
         self.time =0
         

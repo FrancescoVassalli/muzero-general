@@ -12,7 +12,7 @@ class DataSet:
         self.split=0.8
         self.pca = PCA(n_components=3,whiten=True)
         self.train_features = pd.DataFrame(self.pca.fit_transform(df[:int(self.split*self.dataSize)]))
-        self.test_featues = self.pca.transform(df[int(self.split*self.dataSize):])
+        self.test_featues = pd.DataFrame(self.pca.transform(df[int(self.split*self.dataSize):]))
 
 
     def getFeatures(self,train):
