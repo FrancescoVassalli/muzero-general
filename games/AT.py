@@ -234,7 +234,7 @@ class ATEnv:
         
     def legal_actions(self):
         # Initialize to all moves and then prune.
-        legal_actions = list(range(2*g_nStocks)+1)
+        legal_actions = list(range(2*g_nStocks+1))
  
         return legal_actions
 
@@ -265,7 +265,7 @@ class ATEnv:
         return 10*total
             
     def reset(self):
-        self.ownership = [0 for i in range(2*g_nStocks)]
+        self.ownership = [0 for i in range(g_nStocks)]
         self.time = 1 
         return self.get_observation()
 
@@ -275,17 +275,11 @@ class ATEnv:
 
     def get_observation(self):
         #vector of features for each stock plus how much we own
-        observation = []
-        #todo remove this 
-        if self.time > self.max:
-            self.time =1 
+        observation = numpy.zeros((g_nStocks,g_nFeatures+1))
         print("Getting observation at time = "+str(self.time))
-        print(self.features[0].iloc[[1]])
-        print("to")
         print(self.features[0].iloc[[self.time]])
-        #TODO does not loop like I want 
         for i in range(len(self.ownership)):
             print("from stock "+str(i))
-            observation.append(list(self.features[i].iloc[[self.time]]))
+            observation[i] = list(self.features[i].iloc[[self.time]]).append(self.ownership[i])
         return observation.flatten()
 
