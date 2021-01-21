@@ -224,21 +224,23 @@ class ATEnv:
         #call AT to generate the list of closing prices for each stock
         self.closes = self.data.getPrices(True)
         #get the features as a list of one DF per stock make sure the order is the same
-        self.featues = [self.data.getFeatures(True)]
+        self.features = [self.data.getFeatures(True)]
         self.max = self.data.getSize(True)
-        end  = len(self.featues[0].index)
-        print("Feature len " +str(end))
-        self.ownership = [0 for i in range(2*g_nStocks)]
-        self.time =0
+        self.ownership = [0]*g_nStocks
+        self.time =1
+        print("Starting Env with max time = "+str(self.max))
+        print(self.features[0].head())
+        self.cash = 1.0
         
     def legal_actions(self):
         # Initialize to all moves and then prune.
-        legal_actions = list(range(2*g_nStocks))
+        legal_actions = list(range(2*g_nStocks)+1)
  
         return legal_actions
 
     def step(self, action):
 
+        print("Taking step")
         if action ==0:
             pass
         elif action-1 < len(self.ownership):
@@ -246,7 +248,9 @@ class ATEnv:
         else:
             self.ownership[action-len(self.ownsership)-1]-=self.getChangeValue()
         self.time+=1
-        return self.get_observation(), self.getReward(), self.time==self.max
+        if self.time >self.max:
+            print("Time out of bounds")
+        return self.get_observation(), self.getReward(), self.time>=self.max
     
     def getChangeValue(self):
         if sum([abs(i) for i in self.ownership])<0.8:
@@ -262,6 +266,7 @@ class ATEnv:
             
     def reset(self):
         self.ownership = [0 for i in range(2*g_nStocks)]
+        self.time = 1 
         return self.get_observation()
 
     def render(self):
@@ -271,7 +276,16 @@ class ATEnv:
     def get_observation(self):
         #vector of features for each stock plus how much we own
         observation = []
+        #todo remove this 
+        if self.time > self.max:
+            self.time =1 
+        print("Getting observation at time = "+str(self.time))
+        print(self.features[0].iloc[[1]])
+        print("to")
+        print(self.features[0].iloc[[self.time]])
+        #TODO does not loop like I want 
         for i in range(len(self.ownership)):
-            observation.append(list(self.featues[i].iloc[[self.time]]))
+            print("from stock "+str(i))
+            observation.append(list(self.features[i].iloc[[self.time]]))
         return observation.flatten()
 
