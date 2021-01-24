@@ -325,6 +325,9 @@ class MCTS:
 
             while node.expanded():
                 current_tree_depth += 1
+                print("Selecting child from:")
+                for item in node.children.keys():
+                    print(item)
                 action, node = self.select_child(node, min_max_stats)
                 search_path.append(node)
 
