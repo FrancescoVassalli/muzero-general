@@ -186,6 +186,7 @@ class Game(AbstractGame):
             An array of integers, subset of the action space.
         """
         return self.env.legal_actions()
+        #return list(range(2))
 
     def reset(self):
         """
@@ -264,6 +265,10 @@ class ATEnv:
         total = 0
         for i in range(len(self.ownership)):
             total += self.ownership[i]*(self.closes[i][self.time]-self.closes[i][self.time-1])/self.closes[i][self.time-1]
+        if total<1.0:
+            total=0
+        else:
+            print("Reward = "+str(total))
         return 10*total
             
     def reset(self):
