@@ -37,7 +37,7 @@ class MuZeroConfig:
         ### Game
         numChannels = 1
         #We have nStocks with nFeatues each plus a field to say how much we own
-        self.observation_shape = (1, g_nStocks, g_nFeatures+1)  # Dimensions of the game observation, must be 3D (channel, height, width). For a 1D array, please reshape it to (1, 1, length of array)
+        self.observation_shape = (1, g_nStocks, g_nFeatures)  # Dimensions of the game observation, must be 3D (channel, height, width). For a 1D array, please reshape it to (1, 1, length of array)
         #for each stock we can buy or sell we can also do nothing
         self.action_space = list(range(2*g_nStocks+1))  # Fixed list of all possible actions. You should only edit the length
         self.players = list(range(1))  # List of players. You should only edit the length
@@ -228,7 +228,7 @@ class ATEnv:
     def __init__(self):
         self.data = DataSet.DataSet()
         #call AT to generate the list of closing prices for each stock
-        self.closes = self.data.getPrices(True)
+        self.closes = [self.data.getPrices(True)]
         #get the features as a list of one DF per stock make sure the order is the same
         self.features = [self.data.getFeatures(True)]
         self.max = self.data.getSize(True)
@@ -249,7 +249,7 @@ class ATEnv:
         elif action-1 < len(self.ownership):
             self.ownership[action-1]+=self.getChangeValue()
         else:
-            self.ownership[action-len(self.ownsership)-1]-=self.getChangeValue()
+            self.ownership[action-len(self.ownership)-1]-=self.getChangeValue()
         self.time+=1
         if self.time >self.max:
             print("Time out of bounds")
@@ -282,10 +282,14 @@ class ATEnv:
 
     def get_observation(self):
         #vector of features for each stock plus how much we own
-        observation = numpy.zeros((g_nStocks,g_nFeatures+1))
+        observation = numpy.zeros((g_nStocks,g_nFeatures))
         print("Getting observation at time = "+str(self.time))
-        print(self.features[0].iloc[[self.time]])
         for i in range(len(self.ownership)):
             print("from stock "+str(i))
-            observation[i] = list(self.features[i].iloc[[self.time]]).append(self.ownership[i])
+            features  = self.features[i].iloc[[self.time]].values.flatten().tolist()
+            print("features: "+str(features))
+            print("Ownership: "+str(self.ownership[i]))
+            features.append(self.ownership[i])
+            print("Total: "+str(features))
+            observation[i] = features
         return observation.flatten()
