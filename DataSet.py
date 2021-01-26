@@ -7,7 +7,6 @@ class DataSet:
         pathY = "../ranos/DL30/XTotalAPPS.price.at"
         df  = pd.read_csv(path,header=None)
         self.dfy  = pd.read_csv(path,header=None)
-        self.dfy = self.dfy.rename(columns={0:"Y"})
         self.dataSize = len(df.index)
         self.split=0.8
         self.pca = PCA(n_components=3,whiten=True)
@@ -23,9 +22,9 @@ class DataSet:
 
     def getPrices(self,train):
         if train:
-            return self.dfy["Y"][:int(self.split*self.dataSize)]
+            return self.dfy.iloc[[:int(self.split*self.dataSize)]]
         else:
-            return self.dfy["Y"][int(self.split*self.dataSize):]
+            return self.dfy.iloc[[int(self.split*self.dataSize):]]
 
     def getSize(self,train):
         if train:

@@ -67,8 +67,9 @@ class MuZeroConfig:
 
 
 
-vi         ### Network
+        ### Network
         self.network = "fullyconnected"  # "resnet" / "fullyconnected"
+        #check support size 
         self.support_size = 10  # Value and reward are scaled (with almost sqrt) and encoded on a vector with a range of -support_size to support_size. Choose it so that support_size <= sqrt(max(abs(discounted reward)))
         
         # Residual Network
@@ -268,7 +269,7 @@ class ATEnv:
     def getReward(self):
         total = 0
         for i in range(len(self.ownership)):
-            total += self.ownership[i]*(self.closes[i][self.time]-self.closes[i][self.time-1])/self.closes[i][self.time-1]
+            total += self.ownership[i]*(self.closes[i].iloc[[self.time-1]][1]-self.closes[i].iloc[[self.time-1]][0])/self.closes[i][self.time-1]
         print("Reward = "+str(total)+"\nOwnership: "+str(self.ownership]))+
         "\nLast action: "+str(self.last_action))
         return 10*total
