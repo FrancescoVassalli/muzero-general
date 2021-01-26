@@ -11,6 +11,7 @@ import sys, os,inspect
 
 import numpy
 import torch
+import random
 
 from .abstract_game import AbstractGame
 mydir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
@@ -233,10 +234,11 @@ class ATEnv:
         self.features = [self.data.getFeatures(True)]
         self.max = self.data.getSize(True)
         self.ownership = [0]*g_nStocks
-        self.time =1
+        self.time =random.randrange(1, self.max)
         print("Starting Env with max time = "+str(self.max))
         print(self.features[0].head())
         self.cash = 1.0
+        self.last_action = -1
         
     def legal_actions(self):
         # Initialize to all moves and then prune.
@@ -252,6 +254,7 @@ class ATEnv:
         self.time+=1
         if self.time >self.max:
             print("Time out of bounds")
+        self.last_action = action
         return self.get_observation(), self.getReward(), self.time>=self.max
     
     def getChangeValue(self):
@@ -264,7 +267,8 @@ class ATEnv:
         total = 0
         for i in range(len(self.ownership)):
             total += self.ownership[i]*(self.closes[i][self.time]-self.closes[i][self.time-1])/self.closes[i][self.time-1]
-        print("Reward = "+str(total))
+        print("Reward = "+str(total)+"\nOwnership: "+str(self.ownership]))+
+        "\nLast action: "+str(self.last_action))
         return 10*total
             
     def reset(self):
