@@ -267,8 +267,7 @@ class ATEnv:
         total = 0
         for i in range(len(self.ownership)):
             total += self.ownership[i]*(self.closes[i][self.time]-self.closes[i][self.time-1])/self.closes[i][self.time-1]
-        print("Reward = "+str(total)+"\nOwnership: "+str(self.ownership]))+
-        "\nLast action: "+str(self.last_action))
+        print("Reward = "+str(total)+"\nOwnership: "+str(self.ownership)+"\nLast action: "+str(self.last_action))
         return 10*total
             
     def reset(self):
