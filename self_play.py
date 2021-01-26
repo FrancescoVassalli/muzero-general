@@ -370,16 +370,12 @@ class MCTS:
         score_l  = [self.ucb_score(node, child, min_max_stats) for action, child in node.children.items()]
             
         max_ucb = max(score_l)
-        print("Made score list with len = "+str(len(score_l)))
         for score in score_l:
-            print("Score = "+str(score))
-        print("Max ucb = "+str(max_ucb))
         choice_list  = [
                 action
                 for action, child in node.children.items()
                 if self.ucb_score(node, child, min_max_stats) == max_ucb
             ]
-        print("Made choice list len = "+str(len(choice_list)))
         for i in choice_list:
             print(i)
         action = numpy.random.choice(choice_list)
@@ -395,11 +391,11 @@ class MCTS:
             )
             + self.config.pb_c_init
         )
-        print("PB_c = "+str(pb_c))
+        #print("PB_c = "+str(pb_c))
         pb_c *= math.sqrt(parent.visit_count) / (child.visit_count + 1)
 
         prior_score = pb_c * child.prior
-        print("Prior score =  "+str(prior_score))
+        #print("Prior score =  "+str(prior_score))
 
         if child.visit_count > 0:
             # Mean value Q
@@ -410,7 +406,7 @@ class MCTS:
             )
         else:
             value_score = 0
-        print("Value score = "+str(value_score))
+        #print("Value score = "+str(value_score))
 
         return prior_score + value_score
 
@@ -473,6 +469,7 @@ class Node:
         ).tolist()
         policy = {a: policy_values[i] for i, a in enumerate(actions)}
         for action, p in policy.items():
+            #print("Action :"+str(action)+" "+str(p))
             self.children[action] = Node(p)
 
     def add_exploration_noise(self, dirichlet_alpha, exploration_fraction):

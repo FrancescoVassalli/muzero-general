@@ -243,7 +243,6 @@ class ATEnv:
         return list(range(2*g_nStocks+1))
 
     def step(self, action):
-        print("Taking step")
         if action ==0:
             pass
         elif action-1 < len(self.ownership):
@@ -265,10 +264,7 @@ class ATEnv:
         total = 0
         for i in range(len(self.ownership)):
             total += self.ownership[i]*(self.closes[i][self.time]-self.closes[i][self.time-1])/self.closes[i][self.time-1]
-        if total<1.0:
-            total=0
-        else:
-            print("Reward = "+str(total))
+        print("Reward = "+str(total))
         return 10*total
             
     def reset(self):
@@ -283,13 +279,13 @@ class ATEnv:
     def get_observation(self):
         #vector of features for each stock plus how much we own
         observation = numpy.zeros((g_nStocks,g_nFeatures))
-        print("Getting observation at time = "+str(self.time))
+        #print("Getting observation at time = "+str(self.time))
         for i in range(len(self.ownership)):
-            print("from stock "+str(i))
+            #print("from stock "+str(i))
             features  = self.features[i].iloc[[self.time]].values.flatten().tolist()
-            print("features: "+str(features))
-            print("Ownership: "+str(self.ownership[i]))
+            #print("features: "+str(features))
+            #print("Ownership: "+str(self.ownership[i]))
             features.append(self.ownership[i])
-            print("Total: "+str(features))
+            #print("Total: "+str(features))
             observation[i] = features
         return observation.flatten()
