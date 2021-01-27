@@ -68,13 +68,8 @@ class MuZeroConfig:
 
 
         ### Network
-        self.network = "fullyconnected"  # "resnet" / "fullyconnected"
-<<<<<<< HEAD
-        #check support size 
-        self.support_size = 10  # Value and reward are scaled (with almost sqrt) and encoded on a vector with a range of -support_size to support_size. Choose it so that support_size <= sqrt(max(abs(discounted reward)))
-=======
+        self.network = "resnet"  # "resnet" / "fullyconnected"
         self.support_size = 20  # Value and reward are scaled (with almost sqrt) and encoded on a vector with a range of -support_size to support_size. Choose it so that support_size <= sqrt(max(abs(discounted reward)))
->>>>>>> 7779576b00c8750123793e31647c0b57579a9cd1
         
         # Residual Network
         self.downsample = False  # Downsample observations before representation network, False / "CNN" (lighter) / "resnet" (See paper appendix Network Architecture)
@@ -268,19 +263,19 @@ class ATEnv:
         if sum([abs(i) for i in self.ownership])<1:
             return 0.2
         else:
-            return 0
+            return 0.2*sum([abs(i) for i in self.ownership])
                 
     def getReward(self):
         total = 0
         #print("Reward = "+str(total)+"\nOwnership: "+str(self.ownership)+"\nLast action: "+str(self.last_action)+"\nCloses: "+str([self.closes[0][self.time],self.closes[0][self.time-1]]))
         for i in range(len(self.ownership)):
-        
-            base = self.closes[i].iloc[[self.time-1]][0]
+            base = self.closes[i].iloc[[self.time-1]].values[0][0]
+            #print("base: "+str(base))
             if base==0:
                 print("Base 0 at "+str(self.time-1))
                 total=0
             else:
-                total += self.ownership[i]*(self.closes[i].iloc[[self.time-1]][1]-self.closes[i].iloc[[self.time-1]][0])/base
+                total += self.ownership[i]*(self.closes[i].iloc[[self.time-1]].values[0][1]-base)/base
         return 100*total
             
     def reset(self):
