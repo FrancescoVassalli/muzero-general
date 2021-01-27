@@ -53,7 +53,7 @@ class MuZeroConfig:
         self.num_workers = 1  # Number of simultaneous threads/workers self-playing to feed the replay buffer
         self.selfplay_on_gpu = False
         self.max_moves = 126  # Maximum number of moves if game is not finished before
-        self.num_simulations = 3  # Number of future moves self-simulated
+        self.num_simulations = 10  # Number of future moves self-simulated
         self.discount = 0.997  # Chronological discount of the reward
         self.temperature_threshold = None  # Number of moves before dropping the temperature given by visit_softmax_temperature_fn to 0 (ie selecting the best action). If None, visit_softmax_temperature_fn is used every time
 
@@ -64,7 +64,6 @@ class MuZeroConfig:
         # UCB formula
         self.pb_c_base = 19652
         self.pb_c_init = 1.25
-
 
 
         ### Network
@@ -248,17 +247,15 @@ class ATEnv:
         return list(range(2*g_nStocks+1))
 
     def step(self, action):
+        self.last_action = action
         if action ==0:
-            pass
+            self.time+=1
+            return self.get_observation(), self.getReward(), self.time>=self.max
         elif action-1 < len(self.ownership):
             self.ownership[action-1]+=self.getChangeValue()
         else:
             self.ownership[action-len(self.ownership)-1]-=self.getChangeValue()
-        self.time+=1
-        if self.time >self.max:
-            print("Time out of bounds")
-        self.last_action = action
-        return self.get_observation(), self.getReward(), self.time>=self.max
+        return self.get_observation(), 0, self.time>=self.max
     
     def getChangeValue(self):
         if sum([abs(i) for i in self.ownership])<1:
