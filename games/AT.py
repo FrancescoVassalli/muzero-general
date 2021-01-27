@@ -68,7 +68,7 @@ class MuZeroConfig:
 
 
         ### Network
-        self.network = "resnet"  # "resnet" / "fullyconnected"
+        self.network = "fullyconnected"  # "resnet" / "fullyconnected"
         self.support_size = 20  # Value and reward are scaled (with almost sqrt) and encoded on a vector with a range of -support_size to support_size. Choose it so that support_size <= sqrt(max(abs(discounted reward)))
         
         # Residual Network
@@ -239,6 +239,7 @@ class ATEnv:
         print(self.features[0].head())
         self.cash = 1.0
         self.last_action = -1
+        self.totalReward = 0
         
     def legal_actions(self):
         # Initialize to all moves and then prune.
@@ -276,6 +277,7 @@ class ATEnv:
                 total=0
             else:
                 total += self.ownership[i]*(self.closes[i].iloc[[self.time-1]].values[0][1]-base)/base
+        self.totalReward += 100*total
         return 100*total
             
     def reset(self):
@@ -286,7 +288,7 @@ class ATEnv:
 
     def render(self):
         #TODO
-        pass
+        print("Total position: "+str(self.ownership)+" reward: "+str(self.getReward())+" totalReward: "+str(self.totalReward))
 
     def get_observation(self):
         #vector of features for each stock plus how much we own
