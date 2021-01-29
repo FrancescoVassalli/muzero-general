@@ -242,9 +242,14 @@ class ATEnv:
         
     def legal_actions(self):
         # Initialize to all moves and then prune.
-        if self.getChangeValue()==0:
-            return [0]
-        return list(range(2*g_nStocks+1))
+        moves = list(range(2*g_nStocks+1))
+        if sum([abs(i) for i in self.ownership])>=1:
+            for i in range(len(self.ownership)):
+                if self.ownership[i]>=0:
+                    moves.remove(i+1)
+                if self.ownership[i]<=0:
+                    moves.remove(i+len(self.ownership)+1)
+        return moves
 
     def step(self, action):
         self.last_action = action
@@ -255,13 +260,14 @@ class ATEnv:
             self.ownership[action-1]+=self.getChangeValue()
         else:
             self.ownership[action-len(self.ownership)-1]-=self.getChangeValue()
-        return self.get_observation(), 0, self.time>=self.max
+        return self.get_observation(),self.getReward(), self.time>=self.max
     
     def getChangeValue(self):
-        if sum([abs(i) for i in self.ownership])<1:
-            return 0.2
-        else:
-            return 0.2*sum([abs(i) for i in self.ownership])
+        return 1.0
+        #if sum([abs(i) for i in self.ownership])<1:
+            #return 0.2
+        #else:
+            #return 0.2*sum([abs(i) for i in self.ownership])
                 
     def getReward(self):
         total = 0
