@@ -83,7 +83,7 @@ class MuZeroConfig:
 
         # Fully Connected Network
         self.encoding_size = 8
-        self.fc_representation_layers = []  # Define the hidden layers in the representation network
+        self.fc_representation_layers = [16]  # Define the hidden layers in the representation network
         self.fc_dynamics_layers = [16]  # Define the hidden layers in the dynamics network
         self.fc_reward_layers = [16]  # Define the hidden layers in the reward network
         self.fc_value_layers = [16]  # Define the hidden layers in the value network
@@ -253,8 +253,8 @@ class ATEnv:
 
     def step(self, action):
         self.last_action = action
+        self.time+=1
         if action ==0:
-            self.time+=1
             return self.get_observation(), self.getReward(), self.time>=self.max
         elif action-1 < len(self.ownership):
             self.ownership[action-1]+=self.getChangeValue()
