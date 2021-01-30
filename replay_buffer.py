@@ -79,8 +79,7 @@ class ReplayBuffer:
         ) = ([], [], [], [], [], [], [])
         weight_batch = [] if self.config.PER else None
 
-        for _ in range(self.config.batch_size):
-            game_id, game_history, game_prob = self.sample_game()
+        for game_id, game_history, game_prob in self.sample_n_games(self.config.batch_size):
             game_pos, pos_prob = self.sample_position(game_history)
 
             values, rewards, policies, actions = self.make_target(
@@ -153,6 +152,24 @@ class ReplayBuffer:
         game_id = self.num_played_games - len(self.buffer) + game_index
 
         return game_id, self.buffer[game_id], game_prob
+
+    def sample_n_games(self, n_games, force_uniform=False):
+        if self.config.PER and not force_uniform:
+            game_id_list = []
+            game_probs = []
+            for game_id, game_history in self.buffer.items():
+                game_id_list.append(game_id)
+                game_probs.append(game_history.game_priority)
+            game_probs = numpy.array(game_probs, dtype="float32")
+            game_probs /= numpy.sum(game_probs)
+            game_prob_dict = dict([(game_id, prob) for game_id, prob in zip(game_id_list, game_probs)])
+            selected_games = numpy.random.choice(game_id_list, n_games, p=game_probs)
+        else:
+            selected_games = numpy.random.choice(list(self.buffer.keys()), n_games)
+            game_prob_dict = {}
+        ret = [(game_id, self.buffer[game_id], game_prob_dict.get(game_id))
+               for game_id in selected_games]
+        return ret
 
     def sample_position(self, game_history, force_uniform=False):
         """
@@ -230,7 +247,7 @@ class ReplayBuffer:
             value += (
                 reward
                 if game_history.to_play_history[index]
-                == game_history.to_play_history[index + i]
+                == game_history.to_play_history[index +  i ]  # player[i-i] got reward[i]
                 else -reward
             ) * self.config.discount ** i
 
@@ -241,6 +258,7 @@ class ReplayBuffer:
         Generate targets for every unroll steps.
         """
         target_values, target_rewards, target_policies, actions = [], [], [], []
+        last_reward = 0
         for current_index in range(
             state_index, state_index + self.config.num_unroll_steps + 1
         ):
@@ -253,7 +271,8 @@ class ReplayBuffer:
                 actions.append(game_history.action_history[current_index])
             elif current_index == len(game_history.root_values):
                 target_values.append(0)
-                target_rewards.append(game_history.reward_history[current_index])
+                last_reward = game_history.reward_history[current_index]
+                target_rewards.append(last_reward)
                 # Uniform policy
                 target_policies.append(
                     [
@@ -265,7 +284,9 @@ class ReplayBuffer:
             else:
                 # States past the end of games are treated as absorbing states
                 target_values.append(0)
-                target_rewards.append(0)
+                if len(self.config.players) > 1:
+                    last_reward = -last_reward
+                target_rewards.append(last_reward)
                 # Uniform policy
                 target_policies.append(
                     [
