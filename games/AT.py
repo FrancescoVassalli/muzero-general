@@ -233,15 +233,16 @@ class ATEnv:
         self.features = [self.data.getFeatures(True)]
         self.max = self.data.getSize(True)-1
         self.ownership = [0]*g_nStocks
-        self.time =random.randrange(1, self.max)
+        self.start = self.time =random.randrange(1, self.max)
         print("Starting Env with max time = "+str(self.max)+ " time = "+str(self.time))
         print(self.features[0].head())
         self.cash = 1.0
         self.last_action = -1
-        self.totalReward = 0
+        self.totalReturn = 0
         
     def legal_actions(self):
         # Initialize to all moves and then prune.
+        return list(range(2*g_nStocks+1))
         moves = list(range(2*g_nStocks+1))
         if sum([abs(i) for i in self.ownership])>=1:
             for i in range(len(self.ownership)):
@@ -254,6 +255,7 @@ class ATEnv:
     def step(self, action):
         self.last_action = action
         self.time+=1
+        self.ownership=[0]*g_nStocks
         if action ==0:
             return self.get_observation(), self.getReward(), self.time>=self.max
         elif action-1 < len(self.ownership):
@@ -274,27 +276,27 @@ class ATEnv:
         #print("Reward = "+str(total)+"\nOwnership: "+str(self.ownership)+"\nLast action: "+str(self.last_action)+"\nCloses: "+str([self.closes[0][self.time],self.closes[0][self.time-1]]))
         for i in range(len(self.ownership)):
             base = self.closes[i].iloc[[self.time-1]].values[0][0]
-            #print("base: "+str(base))
-            if base==0:
-                print("Base 0 at "+str(self.time-1))
-                total=0
+            tommorrow = self.closes[i].iloc[[self.time-1]].values[0][1]
+            self.totalReturn += self.ownership[i]*(tommorrow-base)/base
+            if tommorrow>=base:
+                total+= (self.ownership[i]-1)*(tommorrow-base)/base
             else:
-                total += self.ownership[i]*(self.closes[i].iloc[[self.time-1]].values[0][1]-base)/base
-        self.totalReward += 100*total
-        return 100*total
+                total+= (self.ownership[i]+1)*(tommorrow-base)/base
+        return 100*(total+0.5)
             
     def reset(self):
         self.ownership = [0 for i in range(g_nStocks)]
-        self.time = random.randrange(1, self.max) 
+        self.start=self.time = random.randrange(1, self.max) 
         self.last_action = -1
+        self.totalReturn = 0
         return self.get_observation()
 
     def render(self):
         #TODO
-        print("Total position: "+str(self.ownership)+" reward: "+str(self.getReward())+" totalReward: "+str(self.totalReward)+" actions: "+str(self.legal_actions()))
+        if self.time > self.start:
+            print("Total position: "+str(self.ownership)+" reward: "+str(self.getReward())+"mean return: "+str(self.totalReturn/(self.time-self.start))+" actions: "+str(self.legal_actions()))
 
     def get_observation(self):
-        #vector of features for each stock plus how much we own
         observation = numpy.zeros((g_nStocks,g_nFeatures))
         #print("Getting observation at time = "+str(self.time))
         for i in range(len(self.ownership)):
