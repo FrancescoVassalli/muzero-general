@@ -242,7 +242,6 @@ class ATEnv:
         
     def legal_actions(self):
         # Initialize to all moves and then prune.
-        return list(range(2*g_nStocks+1))
         moves = list(range(2*g_nStocks+1))
         if sum([abs(i) for i in self.ownership])>=1:
             for i in range(len(self.ownership)):
@@ -255,7 +254,6 @@ class ATEnv:
     def step(self, action):
         self.last_action = action
         self.time+=1
-        self.ownership=[0]*g_nStocks
         if action ==0:
             return self.get_observation(), self.getReward(), self.time>=self.max
         elif action-1 < len(self.ownership):
