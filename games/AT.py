@@ -160,7 +160,9 @@ class Game(AbstractGame):
 
     def __init__(self, seed=None):
       self.env = ATEnv()
-
+      if seed<0:
+          self.env.test_active(1)
+          seed=None
     def step(self, action):
         """
         Apply action to the game.
@@ -286,8 +288,16 @@ class ATEnv:
         self.ownership = [0 for i in range(g_nStocks)]
         self.start=self.time = random.randrange(1, self.max) 
         self.last_action = -1
-        self.totalReturn = 0
+        self.cash = 1.0
+        self.totalReward = 0
         return self.get_observation()
+
+    def test_active(self,status):
+        if status:
+            self.closes = [self.data.getPrices(False)]
+            self.features = [self.data.getFeatures(False)]
+            self.max = self.data.getSize(False)-1
+            self.reset()
 
     def render(self):
         #TODO

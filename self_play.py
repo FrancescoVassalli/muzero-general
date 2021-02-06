@@ -17,7 +17,8 @@ class SelfPlay:
     def __init__(self, initial_checkpoint, Game, config, seed):
         self.config = config
         self.game = Game(seed)
-
+        if seed<0:
+            seed=numpy.random.randint(10000)
         # Fix random generator seed
         numpy.random.seed(seed)
         torch.manual_seed(seed)
