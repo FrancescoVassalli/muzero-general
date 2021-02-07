@@ -1,5 +1,6 @@
 import pandas as pd
 from sklearn.decomposition import PCA
+from os.path import exists
 
 class DataSet:
     def __init__(self):
@@ -12,6 +13,13 @@ class DataSet:
         self.pca = PCA(n_components=20,whiten=True)
         self.train_features = pd.DataFrame(self.pca.fit_transform(df[:int(self.split*self.dataSize)]))
         self.test_featues = pd.DataFrame(self.pca.transform(df[int(self.split*self.dataSize):]))
+        self.log = dict()
+        base="results/AT"
+        ext=".csv"
+        start=1
+        while exists(base+str(start)+ext):
+            start +=1
+        self.logCSVName = base+str(start)+ext
 
 
     def getFeatures(self,train):
@@ -31,4 +39,17 @@ class DataSet:
             return int(self.split*self.dataSize)
         else:
             return self.dataSize-int(self.split*self.dataSize)
-    
+
+    def getLogName(self,logName):
+        if logName is None:
+            logName = 1
+        else:
+            logName+=1
+        self.log[logName]=[]
+
+    def write(self):
+        self.log = pd.DataFrame.from_dict(self.log)
+        self.log.to_csv(self.logCSVName)
+
+    def logReturn(self,lastReturn,logName):
+        self.log[logName].append(lastReturn)

@@ -740,7 +740,7 @@ if __name__ == "__main__":
                 )
                 muzero = MuZero(game_name, best_hyperparameters)
             elif choice == 7:
-                muzero.formalTest(render=True, opponent="self", muzero_player=None)
+                muzero.formalTest(render=False, opponent="self", muzero_player=None,num_tests=10)
             elif choice ==8:
                 exit()
             else:

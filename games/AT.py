@@ -205,6 +205,12 @@ class Game(AbstractGame):
         """
         self.env.render()
         input("Press enter to take a step ")
+    
+    def close(self):
+        """
+        Properly close the game.
+        """
+        pass
 
     def action_to_string(self, action_number):
         """
@@ -241,6 +247,7 @@ class ATEnv:
         self.cash = 1.0
         self.last_action = -1
         self.totalReturn = 0
+        self.logName = None
         
     def legal_actions(self):
         # Initialize to all moves and then prune.
@@ -262,7 +269,10 @@ class ATEnv:
             self.ownership[action-1]+=self.getChangeValue()
         else:
             self.ownership[action-len(self.ownership)-1]-=self.getChangeValue()
-        return self.get_observation(),self.getReward(), self.time>=self.max
+        reward , lastReturn  = self.getReward()
+        if self.logName is not None:
+            self.data.logReturn(lastReturn,self.logName)
+        return self.get_observation(),reward, self.time>=self.max
     
     def getChangeValue(self):
         return 1.0
@@ -277,12 +287,16 @@ class ATEnv:
         for i in range(len(self.ownership)):
             base = self.closes[i].iloc[[self.time-1]].values[0][0]
             tommorrow = self.closes[i].iloc[[self.time-1]].values[0][1]
-            self.totalReturn += self.ownership[i]*(tommorrow-base)/base
+            lastReturn = self.ownership[i]*(tommorrow-base)/base
+            self.totalReturn+=lastReturn
             if tommorrow>=base:
                 total+= (self.ownership[i]-1)*(tommorrow-base)/base
             else:
                 total+= (self.ownership[i]+1)*(tommorrow-base)/base
-        return 100*(total+0.05)
+        return (100*(total+0.05), lastReturn)
+    
+    def close(self):
+       self.data.write()
             
     def reset(self):
         self.ownership = [0 for i in range(g_nStocks)]
@@ -290,6 +304,8 @@ class ATEnv:
         self.last_action = -1
         self.cash = 1.0
         self.totalReward = 0
+        if self.logName is not None:
+            self.logName = self.data.getLogName(self.logName)
         return self.get_observation()
 
     def test_active(self,status):
@@ -298,6 +314,14 @@ class ATEnv:
             self.features = [self.data.getFeatures(False)]
             self.max = self.data.getSize(False)-1
             self.reset()
+            self.logName = self.data.getLogName(self.logName)
+
+        else:
+            self.closes = [self.data.getPrices(True)]
+            self.features = [self.data.getFeatures(True)]
+            self.max = self.data.getSize(True)-1
+            self.reset()
+            self.logName = None
 
     def render(self):
         #TODO
