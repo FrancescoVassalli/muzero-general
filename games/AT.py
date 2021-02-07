@@ -302,7 +302,7 @@ class ATEnv:
     def render(self):
         #TODO
         if self.time > self.start:
-            print("Total position: "+str(self.ownership)+" reward: "+str(self.getReward())+"mean return: "+str(self.totalReturn/(self.time-self.start))+" actions: "+str(self.legal_actions()))
+            print("Total position: "+str(self.ownership)+" reward: "+str(round(self.getReward(),3))+" mean return: "+str(round(self.totalReturn/(self.time-self.start),5))+" actions: "+str(self.legal_actions()))
 
     def get_observation(self):
         observation = numpy.zeros((g_nStocks,g_nFeatures))
