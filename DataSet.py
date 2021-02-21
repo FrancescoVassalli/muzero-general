@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 from sklearn.decomposition import PCA
 from os.path import exists
 
@@ -14,9 +15,11 @@ class DataSet:
         self.train_features = pd.DataFrame(self.pca.fit_transform(df[:int(self.split*self.dataSize)]))
         self.test_featues = pd.DataFrame(self.pca.transform(df[int(self.split*self.dataSize):]))
         self.log = dict()
-        base="results/AT"
+        base="results/AT/formalTest"
         ext=".csv"
         start=1
+        self.trueName = "True"
+        self.randomName="Random"
         while exists(base+str(start)+ext):
             start +=1
         self.logCSVName = base+str(start)+ext
@@ -42,14 +45,27 @@ class DataSet:
 
     def getLogName(self,logName):
         if logName is None:
-            logName = 1
+            return 0
         else:
             logName+=1
-        self.log[logName]=[]
+        self.log[self.trueName+str(logName)]=[]
+        self.log[self.randomName+str(logName)]=[]
+        return logName
 
     def write(self):
+        lens = [ len(val) for _, val in self.log.items() ] 
+        maxLen  = max(lens)
+        for key, val in self.log.items():
+            if len(val)!=maxLen:
+                nanlist = [np.nan]*(maxLen-len(val))
+                self.log[key].extend(nanlist)
+        print(lens)
         self.log = pd.DataFrame.from_dict(self.log)
+        print("Writing "+self.logCSVName)
         self.log.to_csv(self.logCSVName)
 
-    def logReturn(self,lastReturn,logName):
-        self.log[logName].append(lastReturn)
+    def logReturn(self,lastReturn,logName,real):
+        if real:
+            self.log[self.trueName+str(logName)].append(lastReturn)
+        else:
+            self.log[self.randomName+str(logName)].append(lastReturn)

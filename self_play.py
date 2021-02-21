@@ -16,6 +16,7 @@ class SelfPlay:
 
     def __init__(self, initial_checkpoint, Game, config, seed):
         self.config = config
+        print("starting game with seed: "+str(seed))
         self.game = Game(seed)
         if seed<0:
             seed=numpy.random.randint(10000)
@@ -169,6 +170,7 @@ class SelfPlay:
                     )
 
                 observation, reward, done = self.game.step(action)
+                #print("Max moves: "+str(self.config.max_moves)+" done: "+str(done))
 
                 if render:
                     print(f"Played action: {self.game.action_to_string(action)}")
@@ -179,9 +181,12 @@ class SelfPlay:
                 # Next batch
                 game_history.action_history.append(action)
                 game_history.observation_history.append(observation)
+                if isinstance(reward,tuple):
+                    print("Fuck tuple: "+str(reward))
                 game_history.reward_history.append(reward)
                 game_history.to_play_history.append(self.game.to_play())
 
+        print("Test Size: "+str(len(game_history.reward_history)))
         return game_history
 
     def close_game(self):

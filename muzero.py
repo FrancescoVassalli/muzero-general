@@ -450,6 +450,7 @@ class MuZero:
                     )
                 )
             )
+        print("closing test")
         self_play_worker.close_game.remote()
 
         if len(self.config.players) == 1:

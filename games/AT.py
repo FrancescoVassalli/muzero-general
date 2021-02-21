@@ -25,6 +25,7 @@ import DataSet
 g_nStocks = 1
 g_nFeatures = 21
 g_nPeriodsInDay = 14
+g_nMaxMoves = 126
 
 class MuZeroConfig:
     def __init__(self):
@@ -52,7 +53,7 @@ class MuZeroConfig:
         ### Self-Play
         self.num_workers = 1  # Number of simultaneous threads/workers self-playing to feed the replay buffer
         self.selfplay_on_gpu = False
-        self.max_moves = 126  # Maximum number of moves if game is not finished before
+        self.max_moves = g_nMaxMoves  # Maximum number of moves if game is not finished before
         self.num_simulations = 50  # Number of future moves self-simulated
         self.discount = 0.997  # Chronological discount of the reward
         self.temperature_threshold = None  # Number of moves before dropping the temperature given by visit_softmax_temperature_fn to 0 (ie selecting the best action). If None, visit_softmax_temperature_fn is used every time
@@ -161,7 +162,8 @@ class Game(AbstractGame):
     def __init__(self, seed=None):
       self.env = ATEnv()
       if seed<0:
-          self.env.test_active(1)
+          print("Game in test mode")
+          self.env.test_active(True)
           seed=None
     def step(self, action):
         """
@@ -210,7 +212,7 @@ class Game(AbstractGame):
         """
         Properly close the game.
         """
-        pass
+        self.env.close()
 
     def action_to_string(self, action_number):
         """
@@ -241,16 +243,23 @@ class ATEnv:
         self.features = [self.data.getFeatures(True)]
         self.max = self.data.getSize(True)-1
         self.ownership = [0]*g_nStocks
-        self.start = self.time =random.randrange(1, self.max)
+        self.randomOwnership = [0]*g_nStocks
+        self.start = self.time =random.randrange(1, max([2,self.max-g_nMaxMoves]))
         print("Starting Env with max time = "+str(self.max)+ " time = "+str(self.time))
         print(self.features[0].head())
         self.cash = 1.0
         self.last_action = -1
         self.totalReturn = 0
+        self.lastReturn = None
         self.logName = None
-        
+        self.logCount=0
+        #self.rebalanceCount=0
+        #self.MaxRebalance=5
+
     def legal_actions(self):
         # Initialize to all moves and then prune.
+        #if self.rebalanceCount >= self.MaxRebalance:
+            #return list(range(1))
         moves = list(range(2*g_nStocks+1))
         if sum([abs(i) for i in self.ownership])>=1:
             for i in range(len(self.ownership)):
@@ -259,56 +268,98 @@ class ATEnv:
                 if self.ownership[i]<=0:
                     moves.remove(i+len(self.ownership)+1)
         return moves
+    
+    def legal_random_actions(self):
+        # Initialize to all moves and then prune.
+        #if self.rebalanceCount >= self.MaxRebalance:
+            #return list(range(1))
+        moves = list(range(2*g_nStocks+1))
+        if sum([abs(i) for i in self.randomOwnership])>=1:
+            for i in range(len(self.randomOwnership)):
+                if self.randomOwnership[i]>=0:
+                    moves.remove(i+1)
+                if self.randomOwnership[i]<=0:
+                    moves.remove(i+len(self.randomOwnership)+1)
+        return moves
 
     def step(self, action):
         self.last_action = action
         self.time+=1
+        #reward=0
         if action ==0:
-            return self.get_observation(), self.getReward(), self.time>=self.max
+            #self.rebalanceCount=0
+            pass
         elif action-1 < len(self.ownership):
             self.ownership[action-1]+=self.getChangeValue()
+#            self.rebalanceCount+=1
         else:
             self.ownership[action-len(self.ownership)-1]-=self.getChangeValue()
-        reward , lastReturn  = self.getReward()
-        if self.logName is not None:
-            self.data.logReturn(lastReturn,self.logName)
+            #self.rebalanceCount+=1
+        reward = self.getReward()
+        self.log(True)
+        #print("Did step at time: "+str(self.time)+" max at: "+str(self.max)+" game done: "+str(self.time>=self.max))
         return self.get_observation(),reward, self.time>=self.max
-    
+
+    def randomStep(self, action):
+        if action ==0:
+            pass
+        elif action-1 < len(self.randomOwnership):
+            self.randomOwnership[action-1]+=self.getChangeValue()
+        else:
+            self.randomOwnership[action-len(self.randomOwnership)-1]-=self.getChangeValue()
+        reward = self.getReward(self.randomOwnership)
+        self.log(False)
+        return reward
+
+    def log(self,real):
+        if self.logName is not None:
+            self.data.logReturn(self.lastReturn,self.logName,real)
+            self.logCount+=1
+            if real:
+                self.randomStep(random.choice(self.legal_random_actions()))
+
     def getChangeValue(self):
-        return 1.0
-        #if sum([abs(i) for i in self.ownership])<1:
-            #return 0.2
-        #else:
-            #return 0.2*sum([abs(i) for i in self.ownership])
+        #return 1.0
+        if sum([abs(i) for i in self.ownership])<1:
+            return 0.2
+        else:
+            return 0.2*sum([abs(i) for i in self.ownership])
                 
-    def getReward(self):
+    def getReward(self,portFolio=None):
+        if portFolio is None:
+            portFolio=self.ownership
         total = 0
         #print("Reward = "+str(total)+"\nOwnership: "+str(self.ownership)+"\nLast action: "+str(self.last_action)+"\nCloses: "+str([self.closes[0][self.time],self.closes[0][self.time-1]]))
-        for i in range(len(self.ownership)):
+        for i in range(len(portFolio)):
             base = self.closes[i].iloc[[self.time-1]].values[0][0]
             tommorrow = self.closes[i].iloc[[self.time-1]].values[0][1]
-            lastReturn = self.ownership[i]*(tommorrow-base)/base
-            self.totalReturn+=lastReturn
-            if tommorrow>=base:
-                total+= (self.ownership[i]-1)*(tommorrow-base)/base
-            else:
-                total+= (self.ownership[i]+1)*(tommorrow-base)/base
-        return (100*(total+0.05), lastReturn)
+            self.lastReturn = portFolio[i]*(tommorrow-base)/base
+            self.totalReturn+=self.lastReturn
+            total=self.lastReturn
+            #if tommorrow>=base:
+            #    total+= (self.ownership[i]-1)*(tommorrow-base)/base
+            #else:
+            #    total+= (self.ownership[i]+1)*(tommorrow-base)/base
+        return 100*total
     
     def close(self):
-       self.data.write()
+        if self.logName is not None:
+            self.data.write()
             
     def reset(self):
         self.ownership = [0 for i in range(g_nStocks)]
-        self.start=self.time = random.randrange(1, self.max) 
+        self.start = self.time =random.randrange(1, max([2,self.max-g_nMaxMoves]))
+        print("Restarting Env with max time = "+str(self.max)+ " time = "+str(self.time))
         self.last_action = -1
         self.cash = 1.0
         self.totalReward = 0
+        self.logCount = 0
         if self.logName is not None:
             self.logName = self.data.getLogName(self.logName)
         return self.get_observation()
 
     def test_active(self,status):
+        
         if status:
             self.closes = [self.data.getPrices(False)]
             self.features = [self.data.getFeatures(False)]
